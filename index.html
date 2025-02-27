@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RTC Client</title>
+    <title>PlayCon</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         .loader {
@@ -13,7 +13,7 @@
             display: inline-block;
             position: relative;
             border: 3px solid;
-            border-color: #FFF #FFF transparent;
+            border-color: #404040 #404040 transparent;
             box-sizing: border-box;
             animation: rotation 1s linear infinite;
         }
@@ -97,10 +97,41 @@
         <span class="loader2"></span>
     </div>
 
-    <div id="join" style="display:none; margin-top:-5%" align="center">
-        <input id="join_input" style="font-family: Arial, Helvetica, sans-serif; color:white; width:40vw; height:30%; font-size:8vw; text-align:center;" />
-        <button id="join_button" style="width:100%">Connect</button>
+
+    <div id="join" style="cursor: pointer; margin-top:-5%; display:none" align="center">
+        <h1 style="font-family: Arial, Helvetica, sans-serif; color:white">Enter Key</h1>
+        <input id="join_input" placeholder="key" style="
+            font-family: Arial, Helvetica, sans-serif;
+            color:white;
+            font-size:200%;
+            background:#404040;
+            border:0;
+            width:40%;
+            text-align:center;" />
+        <br><br>
+        <span class="loader"></span>
+        <br><br>
+        <button id="join_button" style="width:40%; font-size:200%; visibility: hidden;">Play!</button>
     </div>
+
+    <!-- <div id="join" style="display:none; margin-top:-5%; width:40%" align="center">
+        <input id="join_input" placeholder="key" style="
+            font-family: Arial, Helvetica, sans-serif;
+            color:white;
+            width:100%;
+            height:30%;
+            font-size:8vw;
+            background:#404040;
+            border:0;
+            text-align:center;" />
+        <br><br>
+        <button id="join_button" style="width:100%; background:#404040; color:white; font-size:150%">Connect</button>
+        <!- - <div style="width:100%; background:#404040">
+            <h1 style="font-family: Arial, Helvetica, sans-serif; color:white">Play!</h1>
+        </div> - ->
+        <br><br>
+        <span class="loader"></span>
+    </div> -->
     
     <script>
 
@@ -131,9 +162,13 @@
         else {
             let j = document.getElementById('join')
             j.style.display = ''
+            let ji = document.getElementById('join_input')
             let jb = document.getElementById('join_button')
+            ji.oninput = () => {
+                if(ji.value.length < 3) jb.style.visibility = 'hidden'
+                else jb.style.visibility = ''
+            }
             jb.onclick = () => {
-                let ji = document.getElementById('join_input')
                 id = ji.value
                 connect()
                 j.style.display = 'none'
