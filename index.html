@@ -431,10 +431,10 @@
             // XR
             let xr_mat4s = null
             // let xr_events = []
-            let xr_support = is_mobile() === false && navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))
+            let xr_support = is_mobile() === false && navigator.xr && (await navigator.xr.isSessionSupported('immersive-ar'))
             if(xr_support) {
                 try {
-                    let xr_session = await navigator.xr.requestSession('immersive-vr', { requiredFeatures:["hand-tracking"] })
+                    let xr_session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures:["hand-tracking"] })
 
                     xr_session.addEventListener('select', () => {
                         if(send) send(JSON.stringify({ log:true, text:'VR-select!' }))
@@ -485,12 +485,8 @@
                                 if(f) {
                                     let j = frame.getJointPose(f, xr_local);
                                     if(j) {
-                                        if(send) send(JSON.stringify({ log:true, text:j.transform.position.x }))
-                                        // const { position, orientation } = jointPose;
-                                        // console.log("Posición del índice:", position);
-                                        // console.log("Orientación del índice:", orientation);
+                                        let p = j.transform.position
                                     }
-                                    // if(send) send(JSON.stringify({ log:true, text:'lol ' + x + ' ' + y + ' ' + z }))
                                 }
                             }
                         }
