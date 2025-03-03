@@ -479,17 +479,18 @@
                         }
 
 
-                        if(xr_session.inputSources) {
-                            for(let i of xr_session.inputSources) {
-                                if(i.hand) {
-                                    let f = i.hand.get('index-finger-tip')
-                                    if(f && f.position) {
-                                        let p = f.position
-                                        let x = p.x
-                                        let y = p.y
-                                        let z = p.z
-                                        if(send) send(JSON.stringify({ log:true, text:'lol ' + x + ' ' + y + ' ' + z }))
+                        for(let i of xr_session.inputSources) {
+                            if(i.hand) {
+                                let f = i.hand.get('index-finger-tip')
+                                if(f) {
+                                    let j = frame.getJointPose(f, xr_local);
+                                    if(j) {
+                                        if(send) send(JSON.stringify({ log:true, text:j.position.x }))
+                                        // const { position, orientation } = jointPose;
+                                        // console.log("Posición del índice:", position);
+                                        // console.log("Orientación del índice:", orientation);
                                     }
+                                    // if(send) send(JSON.stringify({ log:true, text:'lol ' + x + ' ' + y + ' ' + z }))
                                 }
                             }
                         }
