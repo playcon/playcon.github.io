@@ -483,7 +483,7 @@
                             for(let i of xr_session.inputSources) {
                                 if(i.hand) {
                                     let f = i.hand.get('index-finger-tip')
-                                    if(f) {
+                                    if(f && f.position) {
                                         let p = f.position
                                         let x = p.x
                                         let y = p.y
