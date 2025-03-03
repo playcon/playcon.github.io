@@ -434,7 +434,7 @@
             let xr_support = is_mobile() === false && navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))
             if(xr_support) {
                 try {
-                    let xr_session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures:["hand-tracking"] })
+                    let xr_session = await navigator.xr.requestSession('immersive-vr', { requiredFeatures:["hand-tracking"] })
 
                     xr_session.addEventListener('select', () => {
                         if(send) send(JSON.stringify({ log:true, text:'VR-select!' }))
