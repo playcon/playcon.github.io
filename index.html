@@ -410,6 +410,9 @@
         // document.body.append(glc);
 
 
+        function is_mobile() {
+            return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        }
 
 
         async function connect() {
@@ -427,10 +430,16 @@
 
             // XR
             let xr_mat4s = null
-            let xr_support = navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))
+            let xr_support = is_mobile() === false && navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))
             if(xr_support) {
                 try {
-                    let xr_session = await navigator.xr.requestSession('immersive-vr')
+                    let xr_session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures:["hand-tracking"] })
+
+                    xr_session.addEventListener('select', () => {
+                        if(send) send(JSON.stringify({ log:true, text:'VR-select!' }))
+                        // console.log("¡Gesto detectado! Click activado.");
+                    })
+
                     let xr_canvas = document.createElement('canvas')
                     let xr_gl = xr_canvas.getContext('webgl2', { xrCompatible:true, depth:false, alpha:false })
                     let xr_local = await xr_session.requestReferenceSpace('local')
