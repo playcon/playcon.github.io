@@ -479,28 +479,20 @@
                         }
 
 
-                        if(send) send(JSON.stringify({ log:true, text:'before' }))
                         if(xr_session.inputSources) {
-                            if(send) send(JSON.stringify({ log:true, text:'yay' }))
                             for(let i of xr_session.inputSources) {
-                                if(send) send(JSON.stringify({ log:true, text:'one' }))
                                 if(i.hand) {
-                                    if(send) send(JSON.stringify({ log:true, text:'two' }))
                                     let f = i.hand.get('index-finger-tip')
-                                    if(send) send(JSON.stringify({ log:true, text:'three' }))
                                     if(f) {
-                                        if(send) send(JSON.stringify({ log:true, text:'four' }))
-                                        // let p = f.transform.position
-                                        // let x = p.x
-                                        // let y = p.y
-                                        // let z = p.z
-                                        // if(send) send(JSON.stringify({ log:true, text:'five' }))
-                                        // if(send) send(JSON.stringify({ log:true, text:'lol ' + x + ' ' + y + ' ' + z }))
+                                        let p = f.position
+                                        let x = p.x
+                                        let y = p.y
+                                        let z = p.z
+                                        if(send) send(JSON.stringify({ log:true, text:'lol ' + x + ' ' + y + ' ' + z }))
                                     }
                                 }
                             }
                         }
-                        if(send) send(JSON.stringify({ log:true, text:'after' }))
 
 
 
