@@ -430,7 +430,7 @@
 
             // XR
             let xr_mat4s = null
-            let xr_events = []
+            // let xr_events = []
             let xr_support = is_mobile() === false && navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))
             if(xr_support) {
                 try {
@@ -479,18 +479,18 @@
                         }
 
 
-                        for(let is of xr_session.inputSources) {
-                            if(is.hand) {
-                                let f = is.hand.get('index-finger-tip')
-                                if(f) {
-                                    let p = f.transform.position
-                                    let x = p.x
-                                    let y = p.y
-                                    let z = p.z
-                                    if(send) send(JSON.stringify({ log:true, text:x + ' ' + y + ' ' + z }))
-                                }
-                            }
-                        }
+                        // for(let is of xr_session.inputSources) {
+                        //     if(is.hand) {
+                        //         let f = is.hand.get('index-finger-tip')
+                        //         if(f) {
+                        //             let p = f.transform.position
+                        //             let x = p.x
+                        //             let y = p.y
+                        //             let z = p.z
+                        //             if(send) send(JSON.stringify({ log:true, text:x + ' ' + y + ' ' + z }))
+                        //         }
+                        //     }
+                        // }
 
 
                         if(video_started && xr_viewports !== null) {
@@ -514,11 +514,11 @@
                 let es = get_events()
                 if(send !== null) {
                     es.xr_mat4s = xr_mat4s
-                    es.xr_events.forEach((ptr) => {
+                    // es.xr_events.forEach((ptr) => {
 
-                    })
+                    // })
 
-                    es.xr_events = []
+                    // es.xr_events = []
                     send(JSON.stringify(es))
                 }
                 setTimeout(loop, 1000 / 60)
