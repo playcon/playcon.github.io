@@ -479,18 +479,18 @@
                         }
 
 
-                        for(let is of xr_session.inputSources) {
-                            if(is.hand) {
-                                let f = is.hand.get('index-finger-tip')
-                                if(f) {
-                                    let p = f.transform.position
-                                    let x = p.x
-                                    let y = p.y
-                                    let z = p.z
-                                    if(send) send(JSON.stringify({ log:true, text:'lol ' + x + ' ' + y + ' ' + z }))
-                                }
-                            }
-                        }
+                        // for(let is of xr_session.inputSources) {
+                        //     if(is.hand) {
+                        //         let f = is.hand.get('index-finger-tip')
+                        //         if(f) {
+                        //             let p = f.transform.position
+                        //             let x = p.x
+                        //             let y = p.y
+                        //             let z = p.z
+                        //             if(send) send(JSON.stringify({ log:true, text:'lol ' + x + ' ' + y + ' ' + z }))
+                        //         }
+                        //     }
+                        // }
 
 
                         if(video_started && xr_viewports !== null) {
