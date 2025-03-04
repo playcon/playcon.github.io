@@ -430,12 +430,13 @@
 
             // XR
             let xr_mat4s = null
+            let xr_hands = null
             // let xr_events = []
             let xr_support = is_mobile() === false && navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))
             if(xr_support) {
                 try {
                     let xr_session = await navigator.xr.requestSession('immersive-vr', {
-                        // requiredFeatures: ["hand-tracking"],
+                        requiredFeatures: ["hand-tracking"],
                         optionalFeatures: ["hand-tracking"],
                     })
 
@@ -482,17 +483,32 @@
                         }
 
 
+                        // for(let i of xr_session.inputSources) {
+                        //     if(i.hand) {
+                        //         let f = i.hand.get('index-finger-tip')
+                        //         if(f) {
+                        //             let j = frame.getJointPose(f, xr_local);
+                        //             if(j) {
+                        //                 let p = j.transform.position
+                        //             }
+                        //         }
+                        //     }
+                        // }
+
+
+                        xr_hands = []
                         for(let i of xr_session.inputSources) {
                             if(i.hand) {
-                                let f = i.hand.get('index-finger-tip')
-                                if(f) {
-                                    let j = frame.getJointPose(f, xr_local);
-                                    if(j) {
-                                        let p = j.transform.position
+                                for(let name of i.hand.joints.keys()) {
+                                    let p = frame.getJointPose(i.hand.joints.get(name), xr_local)
+                                    if(p) {
+                                        xr_hands.push([p.transform.position.x, p.transform.position.y])
                                     }
                                 }
                             }
                         }
+                        
+
 
 
 
@@ -507,6 +523,7 @@
                 }
                 catch(e) {
                     xr_mat4s = null
+                    xr_hands = null
                     xr_support = false
                     // alert(e.toString())
                 }
@@ -517,6 +534,7 @@
                 let es = get_events()
                 if(send !== null) {
                     es.xr_mat4s = xr_mat4s
+                    es.xr_hands = xr_hands
                     // es.xr_events.forEach((ptr) => {
 
                     // })
