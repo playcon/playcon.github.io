@@ -499,8 +499,8 @@
                         xr_hands = []
                         for(let i of xr_session.inputSources) {
                             if(i.hand) {
-                                for(let name of i.hand.joints.keys()) {
-                                    let p = frame.getJointPose(i.hand.joints.get(name), xr_local)
+                                for(let name of i.hand.keys()) {
+                                    let p = frame.getJointPose(i.hand.get(name), xr_local)
                                     if(p) {
                                         xr_hands.push([p.transform.position.x, p.transform.position.y])
                                     }
