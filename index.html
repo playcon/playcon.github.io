@@ -494,14 +494,13 @@
                         // }
                         
 
-                        xr_hands = []
+                        xr_hands = [[], []]
                         for(let i of xr_session.inputSources) {
                             if(i.hand) {
-                                xr_hands.push([])
                                 for(let name of i.hand.keys()) {
                                     let p = frame.getJointPose(i.hand.get(name), xr_local)
                                     if(p) {
-                                        xr_hands[xr_hands.length - 1].push(Array.from(p.transform.matrix))
+                                        xr_hands[i.handedness === 'left'? 0 : 1].push(Array.from(p.transform.matrix))
                                     }
                                 }   
                             }
@@ -533,15 +532,9 @@
                 if(send !== null) {
                     es.xr_mat4s = xr_mat4s
                     es.xr_hands = xr_hands
-                    // es.xr_events.forEach((ptr) => {
-
-                    // })
-
-                    // es.xr_events = []
                     send(JSON.stringify(es))
                 }
-                setTimeout(loop, 1000 / 60)
-                // requestAnimationFrame(loop)
+                setTimeout(loop, 1000 / (60 * 2))
             }
             loop()
 
