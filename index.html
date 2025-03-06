@@ -501,7 +501,7 @@
                                 for(let name of i.hand.keys()) {
                                     let p = frame.getJointPose(i.hand.get(name), xr_local)
                                     if(p) {
-                                        xr_hands[xr_hands.length - 1] = Array.from(p.transform.matrix)
+                                        xr_hands[xr_hands.length - 1].push(Array.from(p.transform.matrix))
                                     }
                                 }   
                             }
