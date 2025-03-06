@@ -142,7 +142,6 @@
             return [w  * f, h * f]
         }
 
-
         let urlParams = new URLSearchParams(window.location.search);
         let id = urlParams.get("id");
         let title = urlParams.get('title')
@@ -482,33 +481,32 @@
                             }
                         }
 
-
+                        // xr_hands = []
                         // for(let i of xr_session.inputSources) {
                         //     if(i.hand) {
-                        //         let f = i.hand.get('index-finger-tip')
-                        //         if(f) {
-                        //             let j = frame.getJointPose(f, xr_local);
-                        //             if(j) {
-                        //                 let p = j.transform.position
+                        //         for(let name of i.hand.keys()) {
+                        //             let p = frame.getJointPose(i.hand.get(name), xr_local)
+                        //             if(p) {
+                        //                 xr_hands.push([p.transform.position.x, p.transform.position.y])
                         //             }
                         //         }
                         //     }
                         // }
-
+                        
 
                         xr_hands = []
                         for(let i of xr_session.inputSources) {
                             if(i.hand) {
+                                xr_hands.push([])
                                 for(let name of i.hand.keys()) {
                                     let p = frame.getJointPose(i.hand.get(name), xr_local)
                                     if(p) {
-                                        xr_hands.push([p.transform.position.x, p.transform.position.y])
+                                        xr_hands[xr_hands.length - 1] = Array.from(p.transform.matrix)
                                     }
-                                }
+                                }   
                             }
                         }
                         
-
 
 
 
