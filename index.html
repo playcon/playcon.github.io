@@ -430,6 +430,7 @@
             // XR
             let xr_mat4s = null
             let xr_hands = null
+            let xr_canvas = document.createElement('canvas')
             // let xr_events = []
             let xr_support = is_mobile() === false && navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))
             if(xr_support) {
@@ -444,9 +445,9 @@
                         // console.log("¡Gesto detectado! Click activado.");
                     })
 
-                    let xr_canvas = document.createElement('canvas')
-                    xr_canvas.width = 1000
-                    xr_canvas.height = 1000
+                    // let xr_canvas = document.createElement('canvas')
+                    // xr_canvas.width = 1000
+                    // xr_canvas.height = 1000
                     let xr_gl = xr_canvas.getContext('webgl2', { xrCompatible:true, depth:false, alpha:false })
                     let xr_local = await xr_session.requestReferenceSpace('local')
 
@@ -550,9 +551,8 @@
                     send = (data) => conn.send(data)
                     send(JSON.stringify({ login:true, xr:xr_support }))
                     peer.on('call', (call) => {
-                        call.answer();  // Responder a la llamada
                         call.on('stream', (remoteStream) => {
-                            video.srcObject = remoteStream;
+                            video.srcObject = remoteStream
                             video.onloadedmetadata = () => {
                                 document.getElementById('loading').style.display = 'none'
                                 video.style.display = ''
@@ -562,13 +562,16 @@
                                     let [a, b] = fitrect(w, h, window.innerWidth, window.innerHeight)
                                     video.style.width = a + 'px'
                                     video.style.height = b + 'px'
+                                    xr_canvas.width = w
+                                    xr_canvas.height = h
                                 }
                                 window.onresize = resize
                                 resize()
                             }
                             video.play()
                             video_started = true
-                        });
+                        })
+                        call.answer()
                     })
                 })
                 window.onbeforeunload = () => {
