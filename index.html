@@ -445,6 +445,8 @@
                     })
 
                     let xr_canvas = document.createElement('canvas')
+                    xr_canvas.width = 1000
+                    xr_canvas.height = 1000
                     let xr_gl = xr_canvas.getContext('webgl2', { xrCompatible:true, depth:false, alpha:false })
                     let xr_local = await xr_session.requestReferenceSpace('local')
 
