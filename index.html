@@ -546,7 +546,7 @@
                 console.error(error)
             })
             peer.on('open', () => {
-                let conn = peer.connect('playcon-' + id)
+                let conn = peer.connect('playcon-' + id, { serialization:'none' })
                 conn.on('open', () => {
                     send = (data) => conn.send(data)
                     send(JSON.stringify({ login:true, xr:xr_support }))
