@@ -529,15 +529,17 @@
                 }
             }
 
+            let send_flushed = true
+
             // let send = null
             let loop = () => {
-                let es = get_events()
-                if(send !== null) {
+                if(send !== null && send_flushed) {
+                    let es = get_events()
                     es.xr_mat4s = xr_mat4s
                     es.xr_hands = xr_hands
                     send(JSON.stringify(es))
                 }
-                setTimeout(loop, 1000 / (60 * 2))
+                setTimeout(loop, 1)
             }
             loop()
 
@@ -546,9 +548,16 @@
                 console.error(error)
             })
             peer.on('open', () => {
-                let conn = peer.connect('playcon-' + id, { serialization:'none' })
+                let conn = peer.connect('playcon-' + id)
                 conn.on('open', () => {
-                    send = (data) => conn.send(data)
+                    send = (data) =>  {
+                        send_flushed = false
+                        conn.send(data)
+                    }
+                    conn.on('data', (data) => {
+                        // console.log('flushed')
+                        send_flushed = true
+                    })
                     send(JSON.stringify({ login:true, xr:xr_support }))
                     peer.on('call', (call) => {
                         call.on('stream', (remoteStream) => {
