@@ -513,6 +513,8 @@
 
 
                         if(video_started && xr_viewports !== null) {
+                            xr_gl.drawingBufferWidth = xr_canvas.width
+                            xr_gl.drawingBufferHeight = xr_canvas.height
                             xr_stream(video, xr_session.renderState.baseLayer.framebuffer, xr_viewports)
                         }
                         xr_session.requestAnimationFrame(req_frame)
