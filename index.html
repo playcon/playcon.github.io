@@ -565,17 +565,29 @@
                             video.onloadedmetadata = () => {
                                 document.getElementById('loading').style.display = 'none'
                                 video.style.display = ''
+
+                                let a_bak = -1
+                                let b_bak = -1
                                 let resize = () => {
                                     let w = video.videoWidth
                                     let h = video.videoHeight
                                     let [a, b] = fitrect(w, h, window.innerWidth, window.innerHeight)
+                                    if(a === a_bak && b === b_bak) {
+                                        return
+                                    }
+                                    send(JSON.stringify({ log:true, text:[w, h, a, b] }))
                                     video.style.width = a + 'px'
                                     video.style.height = b + 'px'
                                     xr_canvas.width = w
                                     xr_canvas.height = h
+                                    a_bak = a
+                                    b_bak = b
                                 }
+
+
                                 window.onresize = resize
                                 resize()
+                                setInterval(resize, 100)
                             }
                             video.play()
                             video_started = true
