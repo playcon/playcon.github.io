@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>uClient</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+        .loader {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            border: 3px solid;
+            border-color: #404040 #404040 transparent;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        .loader::after {
+            content: '';  
+            box-sizing: border-box;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            border: 3px solid;
+            border-color: transparent #b7ff00 #b7ff00;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            animation: rotationBack 0.5s linear infinite;
+            transform-origin: center center;
+        }
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        } 
+        @keyframes rotationBack {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(-360deg);
+            }
+        }
+    </style>          
+    <style>
+        .loader2 {
+            display: block;
+            position: relative;
+            height: 12px;
+            width: 80%;
+            border: 1px solid #fff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .loader2::after {
+            content: '';
+            width: 40%;
+            height: 100%;
+            background: #b7ff00;
+            position: absolute;
+            top: 0;
+            left: 0;
+            box-sizing: border-box;
+            animation: animloader2 2s linear infinite;
+        }
+        @keyframes animloader2 {
+            0% {
+                left: 0;
+                transform: translateX(-100%);
+            }
+            100% {
+                left: 100%;
+                transform: translateX(0%);
+            }
+        }
+    </style>          
+</head>
+<body>
+    <div id="home" style="cursor: pointer; margin-top:-5%; display:none" onclick="connect()" align="center">
+        <h1 style="font-family: Arial, Helvetica, sans-serif; color:white">Click to Play</h1>
+        <button style="width:100%">Connect</button>
+        <br><br>
+        <span class="loader"></span>
+    </div>
+
+    <div id="loading" style="display:none; margin-top:-5%" align="center">
+        <h1 style="font-family: Arial, Helvetica, sans-serif; color:white">Loading</h1>
+        <span class="loader2"></span>
+    </div>
+
+
+    <div id="join" style="cursor: pointer; margin-top:-5%; display:none" align="center">
+        <h1 style="font-family: Arial, Helvetica, sans-serif; color:white">Enter Key</h1>
+        <input id="join_input" placeholder="key" style="
+            font-family: Arial, Helvetica, sans-serif;
+            color:white;
+            font-size:200%;
+            background:#404040;
+            border:0;
+            width:40%;
+            text-align:center;" />
+        <br><br>
+        <span class="loader"></span>
+        <br><br>
+        <button id="join_button" style="width:40%; font-size:200%; visibility: hidden;">Play!</button>
+    </div>
+
+    <!-- <div id="join" style="display:none; margin-top:-5%; width:40%" align="center">
+        <input id="join_input" placeholder="key" style="
+            font-family: Arial, Helvetica, sans-serif;
+            color:white;
+            width:100%;
+            height:30%;
+            font-size:8vw;
+            background:#404040;
+            border:0;
+            text-align:center;" />
+        <br><br>
+        <button id="join_button" style="width:100%; background:#404040; color:white; font-size:150%">Connect</button>
+        <!- - <div style="width:100%; background:#404040">
+            <h1 style="font-family: Arial, Helvetica, sans-serif; color:white">Play!</h1>
+        </div> - ->
+        <br><br>
+        <span class="loader"></span>
+    </div> -->
+    
+    <script>
+
+        let fitrect = (w, h, ow, oh) => {
+            let r = w / h
+            let or = ow / oh
+            let f = (r >= or)? ow / w : oh / h
+            return [w  * f, h * f]
+        }
+
+        let urlParams = new URLSearchParams(window.location.search);
+        let id = urlParams.get("id");
+        let title = urlParams.get('title')
+        if(title) document.title = title
+
+        document.body.style.display = 'flex'
+        document.body.style.justifyContent = 'center'
+        document.body.style.alignItems = 'center'
+        document.body.style.height = '100vh'
+        document.body.style.margin = '0'
+        document.body.style.backgroundColor = 'black'
+
+        if(id) {
+            let h = document.getElementById('home')
+            h.style.display = ''
+        }
+        else {
+            let j = document.getElementById('join')
+            j.style.display = ''
+            let ji = document.getElementById('join_input')
+            let jb = document.getElementById('join_button')
+            ji.oninput = () => {
+                if(ji.value.length < 3) jb.style.visibility = 'hidden'
+                else jb.style.visibility = ''
+            }
+            jb.onclick = () => {
+                id = ji.value
+                connect()
+                j.style.display = 'none'
+            }
+        }
+
+
+        class Events { constructor(
+            keys,
+            ptrs,
+            clicks
+            ) {
+                this.keys = keys
+                this.ptrs = ptrs
+                this.clicks = clicks
+            }
+        }
+        class KeyEvent { constructor(
+            time,
+            mods,
+            action,
+            code,
+            key
+            ) {
+                this.time = time
+                this.mods = mods
+                this.action = action
+                this.code = code
+                this.key = key
+            }
+        }
+        class PtrEvent { constructor(
+            time,
+            mods,
+            action,
+            device,
+            id,
+            x,
+            y,
+            button,
+            buttons,
+            pressure
+            ) {
+                this.time = time
+                this.mods = mods
+                this.action = action
+                this.device = device
+                this.id = id
+                this.x = x
+                this.y = y
+                this.button = button
+                this.buttons = buttons
+                this.pressure = pressure
+            }
+        }
+        class ClickEvent { constructor(
+            time,
+            mods,
+            x,
+            y,
+            double
+            ) {
+                this.time = time
+                this.mods = mods
+                this.x = x
+                this.y = y
+                this.double = double
+            }
+        }
+        const key_event = (e, action) => {
+            return new KeyEvent(Date.now(), [], action, e.code, e.key)
+        }
+        const ptr_event = (e, action, view) => {
+            let device = e.pointerType
+            let id = e.pointerId
+            let bc = view.getBoundingClientRect()
+            let x = (e.x - bc.x) / bc.width
+            let y = (e.y - bc.y) / bc.height
+            return new PtrEvent(Date.now(), [], action, device, id, x, y, e.button, [], e.pressure)
+        }
+        const click_event = (e, double, view) => {
+            let bc = view.getBoundingClientRect()
+            let x = (e.x - bc.x) / bc.width
+            let y = (e.y - bc.y) / bc.height
+            return new ClickEvent(Date.now(), [], x, y, double)
+        }
+        const events = (win, doc, view) => {
+            let keysdown = new Map()
+            let keys = []
+            let ptrs = []
+            let clicks = []
+            win.addEventListener('keydown', (e) => {
+                if(keysdown.has(e.code)) return
+                keys.push(key_event(e, 'down'))
+                keysdown.set(e.code, true)
+            })
+            win.addEventListener('keyup', (e) => {
+                keys.push(key_event(e, 'up'))
+                keysdown.delete(e.code)
+            })
+            doc.addEventListener('pointerdown', (e) => ptrs.push(ptr_event(e, 'down', view)))
+            doc.addEventListener('pointerup',   (e) => ptrs.push(ptr_event(e, 'up', view)))
+            doc.addEventListener('pointermove', (e) => ptrs.push(ptr_event(e, 'move', view)))
+            doc.addEventListener('click',       (e) => clicks.push(click_event(e, false, view)))
+            doc.addEventListener('dblclick',    (e) => clicks.push(click_event(e, true, view)))
+            return () => {
+                let events = new Events(keys, ptrs, clicks)
+                keys = []
+                ptrs = []
+                clicks = []
+                return events
+            }
+        }
+
+        let new_xr_stream = (gl) => {
+            let videoTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, videoTexture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+            let quadBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1,   1, -1,   -1, 1,   1, 1
+            ]), gl.STATIC_DRAW);
+            function compileShader(type, source) {
+                let shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error("Shader error:", gl.getShaderInfoLog(shader));
+                    return null;
+                }
+                return shader;
+            }
+            let vertexShader = compileShader(gl.VERTEX_SHADER, `#version 300 es
+                precision mediump float;
+                in vec2 aPosition;
+                out vec2 vTexCoord;
+                void main() {
+                    vTexCoord = aPosition * 0.5 + 0.5; // Convierte [-1,1] en [0,1]
+                    gl_Position = vec4(aPosition, 0.0, 1.0);
+                }
+            `);
+            let fragmentShader = compileShader(gl.FRAGMENT_SHADER, `#version 300 es
+                precision mediump float;
+                in vec2 vTexCoord;
+                out vec4 fragColor;
+                uniform sampler2D uVideoTexture;
+                uniform float uTexOffsetX;
+                uniform float uTexScaleX;
+                void main() {
+                    vec2 texCoord = vTexCoord;
+                    texCoord.x = uTexOffsetX + texCoord.x * uTexScaleX; // Ajustar textura por ojo
+                    texCoord.y = 1. - texCoord.y;
+                    fragColor = texture(uVideoTexture, texCoord);
+                }
+            `);
+            
+            let videoShaderProgram = gl.createProgram();
+            gl.attachShader(videoShaderProgram, vertexShader);
+            gl.attachShader(videoShaderProgram, fragmentShader);
+            gl.linkProgram(videoShaderProgram);
+
+            let positionAttrib = gl.getAttribLocation(videoShaderProgram, "aPosition");
+            let texOffsetXUniform = gl.getUniformLocation(videoShaderProgram, "uTexOffsetX");
+            let texScaleXUniform = gl.getUniformLocation(videoShaderProgram, "uTexScaleX");
+
+            gl.useProgram(videoShaderProgram);
+            gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+            gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionAttrib);
+            gl.bindTexture(gl.TEXTURE_2D, videoTexture);
+
+            return (video, framebuffer, viewports) => {
+                // gl.clearColor(0, 0, 0, 1)
+                gl.clear(gl.COLOR_BUFFER_BIT)
+
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+                gl.bindTexture(gl.TEXTURE_2D, videoTexture);
+                // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, video.videoWidth, video.videoHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, video);
+                // gl.useProgram(videoShaderProgram);
+                // gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+                // gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
+                // gl.enableVertexAttribArray(positionAttrib);
+                // gl.bindTexture(gl.TEXTURE_2D, videoTexture);
+
+
+                // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, video);
+
+
+                // gl.useProgram(videoShaderProgram);
+                // gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+                // gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
+                // gl.enableVertexAttribArray(positionAttrib);
+                // gl.bindTexture(gl.TEXTURE_2D, videoTexture);
+
+
+                // let width = gl.drawingBufferWidth + 500;
+                // let height = gl.drawingBufferHeight + 500;
+                // if(send !== null) send(JSON.stringify({ log:true, text:width + ' ' + height }))
+                // let halfWidth = width / 2; // Cada ojo usa la mitad del framebuffer
+                // gl.viewport(0, 0, halfWidth, height);
+                // render(0)
+                // gl.viewport(halfWidth, 0, halfWidth, height);
+                // render(0.5)
+
+                let L = viewports[0]
+                gl.viewport(L[0], L[1], L[2], L[3]);
+                render(0)
+                let R = viewports[1]
+                gl.viewport(R[0], R[1], R[2], R[3]);
+                render(0.5)
+
+                function render(texOffsetX) {
+                    let texScaleX = 0.5
+                    gl.uniform1f(texOffsetXUniform, texOffsetX);
+                    gl.uniform1f(texScaleXUniform, texScaleX);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);                   
+                }
+            }
+        }
+
+
+        // let glc = document.createElement('canvas')
+        // let gl = glc.getContext('webgl2', { xrCompatible:true })
+        // let sync = new_xr_stream(gl)
+
+        // let c = document.createElement('canvas')
+        // let x = c.getContext('2d')
+        // x.fillStyle = 'red'
+        // x.fillRect(0, 0, c.width, c.height)
+        // sync(c, null)
+
+        // document.body.append(glc);
+
+
+        function is_mobile() {
+            return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        }
+
+
+        async function connect() {
+            let video = document.createElement('video')
+            video.style.position = 'absolute'
+            video.style.display = 'none'
+            document.body.append(video)
+            let video_started = false
+
+            let get_events = events(window, document, video)
+            let send = null
+
+            document.getElementById('home').style.display = 'none'
+            document.getElementById('loading').style.display = ''
+
+            // XR
+            let xr_mat4s = null
+            let xr_hands = null
+            let xr_canvas = document.createElement('canvas')
+            // let xr_events = []
+            let xr_support = is_mobile() === false && navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))
+            if(xr_support) {
+                try {
+                    let xr_session = await navigator.xr.requestSession('immersive-vr', {
+                        requiredFeatures: ["hand-tracking"],
+                        optionalFeatures: ["hand-tracking"],
+                    })
+
+                    xr_session.addEventListener('select', () => {
+                        if(send) send(JSON.stringify({ log:true, text:'VR-select!' }))
+                        // console.log("¡Gesto detectado! Click activado.");
+                    })
+
+                    // let xr_canvas = document.createElement('canvas')
+                    // xr_canvas.width = 1000
+                    // xr_canvas.height = 1000
+                    let xr_gl = xr_canvas.getContext('webgl2', { xrCompatible:true, depth:false, alpha:false })
+                    let xr_local = await xr_session.requestReferenceSpace('local')
+
+                    let glLayer = new XRWebGLLayer(xr_session, xr_gl)
+                    xr_session.updateRenderState({ baseLayer: glLayer })
+
+                    let xr_stream = new_xr_stream(xr_gl)
+                    let xr_viewports = null
+                    let req_frame = (time, frame) => {
+
+                        // fix this shit ---------------------------------------
+                        // let es = get_events()
+                        // if(send !== null) {
+                        //     es.xr_mat4s = xr_mat4s
+                        //     send(JSON.stringify(es))
+                        // }
+
+
+                        xr_session = frame.session
+                        let pose = frame.getViewerPose(xr_local)
+                        if(!pose) {
+                            // xr_mat4s = null
+                        }
+                        else {
+                            xr_mat4s = []
+                            for(let v of pose.views) {
+                                xr_mat4s.push([Array.from(v.projectionMatrix), Array.from(v.transform.matrix)])
+                                // xr_mat4s.push([Array.from(v.projectionMatrix), Array.from(v.transform.inverse.matrix)])
+                            }
+                            xr_viewports = []
+                            for(let v of pose.views) {
+                                let p = xr_session.renderState.baseLayer.getViewport(v)
+                                xr_viewports.push([p.x, p.y, p.width, p.height])
+                            }
+                        }
+
+                        // xr_hands = []
+                        // for(let i of xr_session.inputSources) {
+                        //     if(i.hand) {
+                        //         for(let name of i.hand.keys()) {
+                        //             let p = frame.getJointPose(i.hand.get(name), xr_local)
+                        //             if(p) {
+                        //                 xr_hands.push([p.transform.position.x, p.transform.position.y])
+                        //             }
+                        //         }
+                        //     }
+                        // }
+                        
+
+                        xr_hands = [[], []]
+                        for(let i of xr_session.inputSources) {
+                            if(i.hand) {
+                                for(let name of i.hand.keys()) {
+                                    let p = frame.getJointPose(i.hand.get(name), xr_local)
+                                    if(p) {
+                                        xr_hands[i.handedness === 'left'? 0 : 1].push(Array.from(p.transform.matrix))
+                                    }
+                                }   
+                            }
+                        }
+                        
+
+
+
+                        if(video_started && xr_viewports !== null) {
+                            // xr_gl.drawingBufferWidth = xr_canvas.width
+                            // xr_gl.drawingBufferHeight = xr_canvas.height
+                            xr_stream(video, xr_session.renderState.baseLayer.framebuffer, xr_viewports)
+                        }
+                        xr_session.requestAnimationFrame(req_frame)
+                    }
+                    // setTimeout(() => {
+                    xr_session.requestAnimationFrame(req_frame)
+                    // }, 2000)
+                }
+                catch(e) {
+                    xr_mat4s = null
+                    xr_hands = null
+                    xr_support = false
+                    // alert(e.toString())
+                }
+            }
+
+            let send_flushed = true
+
+            // let send = null
+            let loop = () => {
+                if(send !== null && send_flushed) {
+                    let es = get_events()
+                    es.xr_mat4s = xr_mat4s
+                    es.xr_hands = xr_hands
+                    send(JSON.stringify(es))
+                }
+                setTimeout(loop, 1)
+            }
+            loop()
+            
+            let host_ready = () => new Promise((resolve) => {
+                let peer = new Peer(undefined, { secure:false, /* reliable:false */ })
+                peer.on('open', () => {
+                    let conn = peer.connect('playcon-' + id)
+                    conn.on('error', () => {
+                        console.log('closed')
+                        // conn.close()
+                        resolve(false)
+                    })
+                    conn.on('open', () => {
+                        console.log('open')
+                        // conn.close()
+                        resolve(true)
+                    })
+                    peer.on('error', () => {
+                        console.log('closed')
+                        // conn.close()
+                        resolve(false)
+                    })
+                    peer.on('open', () => {
+                        console.log('open')
+                        // conn.close()
+                        resolve(true)
+                    })
+                })
+            })
+            let try_host = () => new Promise(async (resolve) => {
+                let conn = await host_ready()
+                console.log(conn)
+                if(conn) resolve()
+                else {
+                    setTimeout(async () => resolve(await try_host()), 1000)
+                }
+            })
+            await try_host()
+
+            // github-app . local-rtc
+            // local-app  . github-rtc
+
+            let peer = new Peer(undefined, { secure:false, /* reliable:false */ })
+            peer.on('error', (error) => {
+                console.error(error)
+            })
+            peer.on('open', () => {
+                let conn = peer.connect('playcon-' + id)
+                conn.on('open', () => {
+                    send = (data) =>  {
+                        send_flushed = false
+                        conn.send(data)
+                    }
+                    conn.on('data', (data) => {
+                        // console.log('flushed')
+                        send_flushed = true
+                    })
+                    send(JSON.stringify({ login:true, xr:xr_support }))
+                    peer.on('call', (call) => {
+                        call.on('stream', (remoteStream) => {
+                            video.srcObject = remoteStream
+                            video.onloadedmetadata = () => {
+                                document.getElementById('loading').style.display = 'none'
+                                video.style.display = ''
+
+                                // let a_bak = -1
+                                // let b_bak = -1
+                                let resize = () => {
+                                    let w = video.videoWidth
+                                    let h = video.videoHeight
+                                    let [a, b] = fitrect(w, h, window.innerWidth, window.innerHeight)
+                                    // if(a === a_bak && b === b_bak) {
+                                    //     return
+                                    // }
+                                    // send(JSON.stringify({ log:true, text:[w, h, a, b] }))
+                                    video.style.width = a + 'px'
+                                    video.style.height = b + 'px'
+                                    xr_canvas.width = w
+                                    xr_canvas.height = h
+                                    // a_bak = a
+                                    // b_bak = b
+                                }
+
+
+                                window.onresize = resize
+                                resize()
+                                // setInterval(resize, 100)
+                                video.play()
+                                video_started = true
+                            }
+                        })
+                        call.answer()
+                    })
+                })
+                window.onbeforeunload = () => {
+                    conn.close()
+                }
+            })
+        }
+    </script>
+</body>
+</html>
