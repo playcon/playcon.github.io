@@ -592,10 +592,8 @@
                     setTimeout(async () => resolve(await try_host()), 1000)
                 }
             })
-
-            console.log('BEFORE')
+            
             await try_host()
-            console.log('AFTER')
 
             // github-app . local-rtc
             // local-app  . github-rtc
