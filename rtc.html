@@ -560,8 +560,25 @@
             
             let host_ready = () => new Promise((resolve) => {
                 let peer = new Peer(undefined, { secure:false, /* reliable:false */ })
+                // peer.on('close', () => {
+                //     console.log('peer close')
+                // })
+                // peer.on('disconnect', () => {
+                //     console.log('peer disconnect')
+                // })
+                // peer.on('error', () => {
+                //     console.log('peer error')
+                // })
+                // peer.on('connect', () => {
+                //     console.log('peer connect')
+                // })
+                // peer.on('open', () => {
+                //     console.log('peer open')
+                // })
                 peer.on('open', () => {
+                    // console.log('peer open')
                     let conn = peer.connect('playcon-' + id)
+                    console.log('peer.connect()')
                     conn.on('error', () => {
                         console.log('closed')
                         // conn.close()
@@ -572,16 +589,11 @@
                         // conn.close()
                         resolve(true)
                     })
-                    peer.on('error', () => {
-                        console.log('closed')
-                        // conn.close()
-                        resolve(false)
-                    })
-                    peer.on('open', () => {
-                        console.log('open')
-                        // conn.close()
-                        resolve(true)
-                    })
+                })
+                peer.on('error', () => {
+                    console.log('closed')
+                    // conn.close()
+                    resolve(false)
                 })
             })
             let try_host = () => new Promise(async (resolve) => {
@@ -617,6 +629,7 @@
                     })
                     send(JSON.stringify({ login:true, xr:xr_support }))
                     peer.on('call', (call) => {
+                        call.answer()
                         call.on('stream', (remoteStream) => {
                             video.srcObject = remoteStream
                             video.onloadedmetadata = () => {
@@ -649,7 +662,6 @@
                                 video_started = true
                             }
                         })
-                        call.answer()
                     })
                 })
                 window.onbeforeunload = () => {
